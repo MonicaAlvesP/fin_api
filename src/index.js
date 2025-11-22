@@ -9,6 +9,25 @@ app.use(express.json());
 // --- ARRAY PROVISÓRIO PARA GUARDARMOS OS CLIENTES ---
 const customers = [];
 
+// --- Midleware PARA VERIFICAR SE O CLIENTE EXISTE ---
+function verifyExistsAccoountCPF(req, res, next) {
+  // --- PEGANDO O CPF DOS PARÂMETROS DA ROTA ---
+  const { cpf } = req.headers;
+
+  // --- BUSCANDO O CLIENTE PELO CPF ---
+  const custumer = customers.find(customer => customer.cpf === cpf);
+
+  // --- SE NÃO ENCONTRAR, RETORNAMOS UM ERRO ---
+  if (!custumer) {
+    return res.status(400).json({ error: 'Cliente não encontrado.' });
+  }
+
+  // --- SE ENCONTRAR, ADICIONAMOS O CLIENTE NA REQUISIÇÃO ---
+  req.custumer = custumer;
+
+  return next();
+}
+
 // PARA CRIAR UMA CONTA, PRECISAMOS DE ALGUNS DADOS COMO:
 // ID, NOME, CPF E O STATEMENT, SENDO O ÚLTIMO UM ARRAY
 app.post("/account", (req, res) => {
@@ -40,18 +59,10 @@ app.post("/account", (req, res) => {
   return res.status(201).send();
 })
 
-app.get("/statement", (req, res) => {
-  // --- PEGANDO O CPF DOS PARÂMETROS DA ROTA ---
-  const { cpf } = req.headers;
+app.get("/statement", verifyExistsAccoountCPF, (req, res) => {
+  // --- PEGANDO O CLIENTE DA REQUISIÇÃO NOVAMENTE ---
+  const { custumer } = req;
 
-  // --- BUSCANDO O CLIENTE PELO CPF ---
-  const custumer = customers.find(customer => customer.cpf === cpf);
-
-  // --- SE NÃO ENCONTRAR, RETORNAMOS UM ERRO ---
-  if (!custumer) {
-    return res.status(400).json({ error: 'Cliente não encontrado.' });
-  }
-  
   // --- RETORNANDO O EXTRATO DO CLIENTE ---
   return res.json(custumer.statement);
 })
