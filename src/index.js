@@ -40,5 +40,21 @@ app.post("/account", (req, res) => {
   return res.status(201).send();
 })
 
+app.get("/statement", (req, res) => {
+  // --- PEGANDO O CPF DOS PARÂMETROS DA ROTA ---
+  const { cpf } = req.headers;
+
+  // --- BUSCANDO O CLIENTE PELO CPF ---
+  const custumer = customers.find(customer => customer.cpf === cpf);
+
+  // --- SE NÃO ENCONTRAR, RETORNAMOS UM ERRO ---
+  if (!custumer) {
+    return res.status(400).json({ error: 'Cliente não encontrado.' });
+  }
+  
+  // --- RETORNANDO O EXTRATO DO CLIENTE ---
+  return res.json(custumer.statement);
+})
+
 // --- PORTA ONDE O SERVIDOR ESTÁ RODANDO ---
 app.listen(3333);
