@@ -9,21 +9,21 @@ app.use(express.json());
 // --- ARRAY PROVISÓRIO PARA GUARDARMOS OS CLIENTES ---
 const customers = [];
 
-// --- Midleware PARA VERIFICAR SE O CLIENTE EXISTE ---
-function verifyExistsAccoountCPF(req, res, next) {
+// --- Middleware PARA VERIFICAR SE O CLIENTE EXISTE ---
+function verifyExistsAccountCPF(req, res, next) {
   // --- PEGANDO O CPF DOS PARÂMETROS DA ROTA ---
   const { cpf } = req.headers;
 
   // --- BUSCANDO O CLIENTE PELO CPF ---
-  const custumer = customers.find(customer => customer.cpf === cpf);
+  const customer = customers.find(customer => customer.cpf === cpf);
 
   // --- SE NÃO ENCONTRAR, RETORNAMOS UM ERRO ---
-  if (!custumer) {
+  if (!customer) {
     return res.status(400).json({ error: 'Cliente não encontrado.' });
   }
 
   // --- SE ENCONTRAR, ADICIONAMOS O CLIENTE NA REQUISIÇÃO ---
-  req.custumer = custumer;
+  req.customer = customer;
 
   return next();
 }
@@ -59,12 +59,12 @@ app.post("/account", (req, res) => {
   return res.status(201).send();
 })
 
-app.get("/statement", verifyExistsAccoountCPF, (req, res) => {
+app.get("/statement", verifyExistsAccountCPF, (req, res) => {
   // --- PEGANDO O CLIENTE DA REQUISIÇÃO NOVAMENTE ---
-  const { custumer } = req;
+  const { customer } = req;
 
   // --- RETORNANDO O EXTRATO DO CLIENTE ---
-  return res.json(custumer.statement);
+  return res.json(customer.statement);
 })
 
 // --- PORTA ONDE O SERVIDOR ESTÁ RODANDO ---
