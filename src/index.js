@@ -28,6 +28,20 @@ function verifyExistsAccountCPF(req, res, next) {
   return next();
 }
 
+function getBalance(statement) {
+  // --- REDUZINDO O EXTRATO PARA CALCULAR O SALDO ---
+  const balance = statement.reduce((acc, operation) => {
+    // --- SE FOR CRÉDITO, SOMAMOS, SE FOR DÉBITO, SUBTRAÍMOS ---
+    if (operation.type === 'credit') {
+      return acc + operation.amount;
+    } else {
+      return acc - operation.amount;
+    }
+  }, 0);
+
+  return balance;
+}
+
 // PARA CRIAR UMA CONTA, PRECISAMOS DE ALGUNS DADOS COMO:
 // ID, NOME, CPF E O STATEMENT, SENDO O ÚLTIMO UM ARRAY
 app.post("/account", (req, res) => {
@@ -86,6 +100,32 @@ app.post("/deposit", verifyExistsAccountCPF, (req, res) => {
 
   return res.status(201).json({ message: 'Depósito realizado com sucesso.' }).send();
 });
+
+app.post("/withdraw", verifyExistsAccountCPF, (req, res) => {
+  // --- PEGANDO O VALOR A SER SACADO DO BODY DA REQUISIÇÃO ---
+  const { amount } = req.body;
+  const { customer } = req;
+
+  // --- CALCULANDO O SALDO ATUAL DO CLIENTE ---
+  const balance = getBalance(customer.statement)
+
+  // --- VERIFICANDO SE O SALDO É SUFICIENTE ---
+  if (balance < amount) {
+    return res.status(400).json({error: "Dinheiro insuficiente!"})
+  }
+
+  const statementOperation = {
+    amount,
+    created_at: new Date(),
+    type: "debit",
+  };
+
+  customer.statement.push(statementOperation);
+
+  return res.status(201).send();
+});
+
+
 
 // --- PORTA ONDE O SERVIDOR ESTÁ RODANDO ---
 app.listen(3333, () => {
