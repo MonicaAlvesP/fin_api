@@ -159,6 +159,16 @@ app.get("/account", verifyExistsAccountCPF, (req, res) => {
   const { customer} = req;
 
   return res.json(customer);
+});
+
+
+app.delete("/account", verifyExistsAccountCPF, (req, res) => {
+  const { customer } = req;
+
+  // --- REMOVENDO O CLIENTE DO ARRAY DE CLIENTES ---
+  customers.splice(customer, 1);
+
+  return res.status(200).json(customers);
 })
 
 // --- PORTA ONDE O SERVIDOR ESTÁ RODANDO ---
