@@ -143,6 +143,24 @@ app.get("/statement/date", verifyExistsAccountCPF, (req, res) => {
   return res.json(statement);
 })
 
+app.put("/account", verifyExistsAccountCPF, (req, res) => {
+  // --- PEGANDO O NOME DO BODY DA REQUISIÇÃO ---
+  const { name } = req.body;
+  const { customer } = req;
+
+  // --- ATUALIZANDO O NOME DO CLIENTE ---
+  customer.name = name;
+
+  // --- RETORNANDO UMA MENSAGEM DE SUCESSO ---
+  return res.status(201).json({ message: 'Nome atualizado com sucesso.' });
+});
+
+app.get("/account", verifyExistsAccountCPF, (req, res) => {
+  const { customer} = req;
+
+  return res.json(customer);
+})
+
 // --- PORTA ONDE O SERVIDOR ESTÁ RODANDO ---
 app.listen(3333, () => {
   console.log('Servidor rodando na porta 3333 🚀');
