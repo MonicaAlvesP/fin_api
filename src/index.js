@@ -56,7 +56,7 @@ app.post("/account", (req, res) => {
     statement: []
   });
 
-  return res.status(201).send();
+  return res.status(201).json({ message: 'Conta criada com sucesso.' });
 })
 
 app.get("/statement", verifyExistsAccountCPF, (req, res) => {
@@ -67,5 +67,28 @@ app.get("/statement", verifyExistsAccountCPF, (req, res) => {
   return res.json(customer.statement);
 })
 
+app.post("/deposit", verifyExistsAccountCPF, (req, res) => {
+  const { description, amount } = req.body;
+
+  // --- PEGANDO O CLIENTE DA REQUISIÇÃO ---
+  const { customer } = req;
+
+  // --- CRIANDO UM OBJETO DE OPERAÇÃO DE DEPÓSITO ---
+  const statementOperation = {
+    description,
+    amount,
+    created_at: new Date(),
+    type: "credit"
+  }
+
+  // --- ADICIONANDO A OPERAÇÃO AO EXTRATO DO CLIENTE ---
+  customer.statement.push(statementOperation);
+
+  return res.status(201).json({ message: 'Depósito realizado com sucesso.' }).send();
+});
+
 // --- PORTA ONDE O SERVIDOR ESTÁ RODANDO ---
-app.listen(3333);
+app.listen(3333, () => {
+  console.log('Servidor rodando na porta 3333 🚀');
+  // console.log('Documentação disponível em: http://localhost:3333/api-docs');
+});
