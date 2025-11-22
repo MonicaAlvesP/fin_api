@@ -156,7 +156,7 @@ app.put("/account", verifyExistsAccountCPF, (req, res) => {
 });
 
 app.get("/account", verifyExistsAccountCPF, (req, res) => {
-  const { customer} = req;
+  const { customer } = req;
 
   return res.json(customer);
 });
@@ -169,10 +169,19 @@ app.delete("/account", verifyExistsAccountCPF, (req, res) => {
   customers.splice(customer, 1);
 
   return res.status(200).json(customers);
-})
+});
+
+app.get("/balance", verifyExistsAccountCPF, (req, res) => {
+  const { customer } = req;
+
+  // --- CALCULANDO O SALDO DO CLIENTE ---
+  const balance = getBalance(customer.statement);
+
+  return res.json(balance);
+});
 
 // --- PORTA ONDE O SERVIDOR ESTÁ RODANDO ---
 app.listen(3333, () => {
   console.log('Servidor rodando na porta 3333 🚀');
-  // console.log('Documentação disponível em: http://localhost:3333/api-docs');
+  console.log('Documentação disponível em: http://localhost:3333/api-docs');
 });
