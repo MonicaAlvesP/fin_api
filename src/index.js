@@ -111,7 +111,7 @@ app.post("/withdraw", verifyExistsAccountCPF, (req, res) => {
 
   // --- VERIFICANDO SE O SALDO É SUFICIENTE ---
   if (balance < amount) {
-    return res.status(400).json({error: "Dinheiro insuficiente!"})
+    return res.status(400).json({ error: "Dinheiro insuficiente!" })
   }
 
   const statementOperation = {
@@ -125,7 +125,23 @@ app.post("/withdraw", verifyExistsAccountCPF, (req, res) => {
   return res.status(201).send();
 });
 
+app.get("/statement/date", verifyExistsAccountCPF, (req, res) => {
+  // --- PEGANDO O CLIENTE DA REQUISIÇÃO NOVAMENTE ---
+  const { customer } = req;
+  // --- PEGANDO A DATA DOS PARÂMETROS DA ROTA ---
+  const { date } = req.query;
 
+  // --- FILTRANDO O EXTRATO PELA DATA INFORMADA ---
+  const dateFormat = new Date(date + "00:00");
+
+  // --- FILTRANDO O EXTRATO PELA DATA INFORMADA ---
+  const statement = customer.statement.filter((statement) => {
+    return statement.created_at.toDateString() === new Date(dateFormat).toDateString();
+  })
+
+  // --- RETORNANDO O EXTRATO DO CLIENTE ---
+  return res.json(statement);
+})
 
 // --- PORTA ONDE O SERVIDOR ESTÁ RODANDO ---
 app.listen(3333, () => {
