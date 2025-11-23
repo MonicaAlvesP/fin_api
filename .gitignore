@@ -24,3 +24,9 @@ Thumbs.db
 
 # Git folder
 .github/*
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+src/database/database.sqlite

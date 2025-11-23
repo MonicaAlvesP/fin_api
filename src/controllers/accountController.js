@@ -2,7 +2,7 @@ const accountService = require('../services/accountService');
 const { getBalance } = require('../utils/balance');
 
 const accountController = {
-  createAccount: (req, res) => {
+  createAccount: async (req, res) => {
     const { name, cpf } = req.body;
 
     if (!name || !cpf) {
@@ -10,19 +10,24 @@ const accountController = {
     }
 
     try {
-      accountService.createAccount(name, cpf);
+      await accountService.createAccount(name, cpf);
       return res.status(201).json({ message: 'Conta criada com sucesso.' });
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
   },
 
-  getStatement: (req, res) => {
+  getStatement: async (req, res) => {
     const { customer } = req;
-    return res.json(customer.statement);
+    try {
+      const statement = await accountService.getStatements(customer.id);
+      return res.json(statement);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   },
 
-  deposit: (req, res) => {
+  deposit: async (req, res) => {
     const { description, amount } = req.body;
     const { customer } = req;
 
@@ -37,11 +42,15 @@ const accountController = {
       type: "credit"
     };
 
-    accountService.addStatement(customer, statementOperation);
-    return res.status(201).json({ message: 'Depósito realizado com sucesso.' });
+    try {
+      await accountService.addStatement(customer.id, statementOperation);
+      return res.status(201).json({ message: 'Depósito realizado com sucesso.' });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   },
 
-  withdraw: (req, res) => {
+  withdraw: async (req, res) => {
     const { amount } = req.body;
     const { customer } = req;
 
@@ -49,57 +58,82 @@ const accountController = {
       return res.status(400).json({ error: 'Valor inválido.' });
     }
 
-    const balance = getBalance(customer.statement);
+    try {
+      const statements = await accountService.getStatements(customer.id);
+      const balance = getBalance(statements);
 
-    if (balance < amount) {
-      return res.status(400).json({ error: "Dinheiro insuficiente!" });
+      if (balance < amount) {
+        return res.status(400).json({ error: "Dinheiro insuficiente!" });
+      }
+
+      const statementOperation = {
+        amount,
+        created_at: new Date(),
+        type: "debit",
+      };
+
+      await accountService.addStatement(customer.id, statementOperation);
+      return res.status(201).json({ message: 'Saque realizado com sucesso.' });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
     }
-
-    const statementOperation = {
-      amount,
-      created_at: new Date(),
-      type: "debit",
-    };
-
-    accountService.addStatement(customer, statementOperation);
-    return res.status(201).json({ message: 'Saque realizado com sucesso.' });
   },
 
-  getStatementByDate: (req, res) => {
+  getStatementByDate: async (req, res) => {
     const { customer } = req;
     const { date } = req.query;
 
-    const dateFormat = new Date(date);
-    const statement = customer.statement.filter((statement) => {
-      return statement.created_at.toDateString() === dateFormat.toDateString();
-    });
+    try {
+      const statements = await accountService.getStatements(customer.id);
+      const dateFormat = new Date(date);
+      const statement = statements.filter((stmt) => {
+        return new Date(stmt.created_at).toDateString() === dateFormat.toDateString();
+      });
 
-    return res.json(statement);
+      return res.json(statement);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   },
 
-  updateAccount: (req, res) => {
+  updateAccount: async (req, res) => {
     const { name } = req.body;
     const { customer } = req;
 
-    accountService.updateCustomerName(customer, name);
-    return res.status(200).json({ message: 'Nome atualizado com sucesso.' });
+    try {
+      await accountService.updateCustomerName(customer.id, name);
+      return res.status(200).json({ message: 'Nome atualizado com sucesso.' });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   },
 
-  getAccount: (req, res) => {
+  getAccount: async (req, res) => {
     const { customer } = req;
     return res.json(customer);
   },
 
-  deleteAccount: (req, res) => {
+  deleteAccount: async (req, res) => {
     const { customer } = req;
-    const customers = accountService.deleteCustomer(customer);
-    return res.status(200).json(customers);
+
+    try {
+      await accountService.deleteCustomer(customer.id);
+      return res.status(200).json({ message: 'Conta deletada com sucesso.' });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   },
 
-  getBalance: (req, res) => {
+  getBalance: async (req, res) => {
     const { customer } = req;
-    const balance = getBalance(customer.statement);
-    return res.json({ balance });
+
+    try {
+      const statements = await accountService.getStatements(customer.id);
+      const balance = getBalance(statements);
+      return res.json({ balance });
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   }
 };
 
