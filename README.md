@@ -1,28 +1,61 @@
 # FIN API
 
-API simples para gerenciamento financeiro construída com Node.js e Express, permitindo cadastro de usuários, contas bancárias e operações financeiras.
+API RESTful para gerenciamento financeiro construída com Node.js e Express. Permite criar contas, realizar depósitos, saques e consultar extratos bancários.
 
-Descrição
-- Projeto Node.js minimal contendo um endpoint principal em `src/index.js`.
+## 🚀 Funcionalidades
 
-> Requisitos
-- Node.js (recomendo 16+)
-- NPM ou PNPM/Yarn
+- Criação de contas bancárias
+- Depósitos e saques
+- Consulta de extratos
+- Consulta de saldo
+- Filtro de extrato por data
+- Atualização e exclusão de contas
 
-> Instalação
+## 📋 Requisitos
+
+- Node.js 16+
+- NPM ou Yarn
+
+## 🔧 Instalação
 
 ```bash
 npm install
 ```
 
-Executando
+## ▶️ Executando
 
 ```bash
 npm run dev
-# ou, durante desenvolvimento
-node src/index.js
 ```
 
-Estrutura básica
-- `package.json` — scripts e dependências
-- `src/index.js` — ponto de entrada
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── controllers/     # Lógica das rotas
+├── middlewares/     # Validações e autenticação
+├── routes/          # Definição das rotas
+├── services/        # Regras de negócio
+├── utils/           # Funções auxiliares
+└── index.js         # Servidor principal
+```
+
+## 🛠️ API Endpoints
+
+### Contas
+- `POST /account` - Criar conta
+- `GET /account` - Buscar conta
+- `PUT /account` - Atualizar conta
+- `DELETE /account` - Deletar conta
+
+### Operações
+- `POST /deposit` - Realizar depósito
+- `POST /withdraw` - Realizar saque
+- `GET /balance` - Consultar saldo
+
+### Extratos
+- `GET /statement` - Consultar extrato
+- `GET /statement/date` - Extrato por data
+
+## 🤝 Contribuição
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
