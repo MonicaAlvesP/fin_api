@@ -16,6 +16,11 @@ API RESTful para gerenciamento financeiro construída com Node.js e Express. Per
 - Node.js 16+
 - NPM ou Yarn
 
+## ⚠️ Observações
+
+- Os dados são armazenados em memória (reiniciar o servidor apaga os dados)
+- Projeto em desenvolvimento - banco de dados será implementado em versões futuras.
+
 ## 🔧 Instalação
 
 ```bash
