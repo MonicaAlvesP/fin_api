@@ -17,80 +17,68 @@ const accountController = {
     }
   },
 
-  getStatement: async (req, res) => {
-    const { customer } = req;
-    try {
-      const statement = await accountService.getStatements(customer.id);
-      return res.json(statement);
-    } catch (error) {
-      return res.status(400).json({ error: error.message });
-    }
-  },
-
-  deposit: async (req, res) => {
-    const { description, amount } = req.body;
+  createTransaction: async (req, res) => {
+    const { type, amount, description } = req.body;
     const { customer } = req;
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Valor inválido.' });
+    if (!type || !amount || amount <= 0) {
+      return res.status(400).json({ error: 'Tipo e valor são obrigatórios.' });
     }
 
-    const statementOperation = {
-      description,
-      amount,
-      created_at: new Date(),
-      type: "credit"
-    };
-
-    try {
-      await accountService.addStatement(customer.id, statementOperation);
-      return res.status(201).json({ message: 'Depósito realizado com sucesso.' });
-    } catch (error) {
-      return res.status(400).json({ error: error.message });
-    }
-  },
-
-  withdraw: async (req, res) => {
-    const { amount } = req.body;
-    const { customer } = req;
-
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Valor inválido.' });
+    if (!['credit', 'debit'].includes(type)) {
+      return res.status(400).json({ error: 'Tipo deve ser "credit" ou "debit".' });
     }
 
     try {
-      const statements = await accountService.getStatements(customer.id);
-      const balance = getBalance(statements);
-
-      if (balance < amount) {
-        return res.status(400).json({ error: "Dinheiro insuficiente!" });
+      if (type === 'debit') {
+        const statements = await accountService.getStatements(customer.id);
+        const balance = getBalance(statements);
+        
+        if (balance < amount) {
+          return res.status(400).json({ error: "Saldo insuficiente!" });
+        }
       }
 
       const statementOperation = {
+        description: description || (type === 'credit' ? 'Depósito' : 'Saque'),
         amount,
-        created_at: new Date(),
-        type: "debit",
+        type
       };
 
       await accountService.addStatement(customer.id, statementOperation);
-      return res.status(201).json({ message: 'Saque realizado com sucesso.' });
+      const message = type === 'credit' ? 'Depósito realizado com sucesso.' : 'Saque realizado com sucesso.';
+      return res.status(201).json({ message });
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
   },
 
-  getStatementByDate: async (req, res) => {
+  getAllTransactions: async (req, res) => {
+    const { customer } = req;
+    try {
+      const transactions = await accountService.getStatements(customer.id);
+      return res.json(transactions);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  },
+
+  getTransactionsByDate: async (req, res) => {
     const { customer } = req;
     const { date } = req.query;
 
+    if (!date) {
+      return res.status(400).json({ error: 'Parâmetro date é obrigatório.' });
+    }
+
     try {
-      const statements = await accountService.getStatements(customer.id);
-      const dateFormat = new Date(date);
-      const statement = statements.filter((stmt) => {
-        return new Date(stmt.created_at).toDateString() === dateFormat.toDateString();
+      const transactions = await accountService.getStatements(customer.id);
+      const filteredTransactions = transactions.filter((stmt) => {
+        const stmtDate = new Date(stmt.created_at).toISOString().split('T')[0];
+        return stmtDate === date;
       });
 
-      return res.json(statement);
+      return res.json(filteredTransactions);
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
